@@ -78,9 +78,14 @@ mongoose.connect(
     }
   );
 
-app.listen(process.env.PORT, (err) => {
+const server = app.listen(process.env.PORT, (err) => {
     if (err) {
         console.log(err)
     }
     console.log(`Server listening on port ${process.env.PORT}`)
+})
+
+const io = require('socket.io')(server)
+io.on('connection', socket => {
+    console.log('a user connected')
 })
