@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 const dotenv = require('dotenv')
 const path = require('path')
 const multer = require('multer')
+const { graphqlHTTP } = require('express-graphql');
 
 dotenv.config()
 
@@ -16,7 +17,8 @@ const connectionString = process.env.MONGO_CONNECT
 const app = express()
 const feedRouter = require('./routes/feedRoutes')
 const authRouter = require('./routes/authRouter')
-
+const graphqlSchema = require('./graphql/schema')
+const graphqlResolver = require('./graphql/resolvers')
 
 app.use(bodyParser.json())
 app.use('/images', express.static(path.join(__dirname, 'images')))
@@ -46,6 +48,12 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
     next()
 })
+
+app.use('/graphql', graphqlHTTP({
+    schema: graphqlSchema,
+    rootValue: graphqlResolver,
+    graphiql: true
+}))
 
 app.use((error, req, res, next) => {
     console.log(error)
@@ -78,14 +86,9 @@ mongoose.connect(
     }
   );
 
-const server = app.listen(process.env.PORT, (err) => {
+app.listen(process.env.PORT, (err) => {
     if (err) {
         console.log(err)
     }
     console.log(`Server listening on port ${process.env.PORT}`)
-})
-
-const io = require('socket.io')(server)
-io.on('connection', socket => {
-    console.log('a user connected')
 })
